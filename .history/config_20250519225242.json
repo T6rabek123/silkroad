@@ -1,0 +1,5 @@
+{
+  "botToken": "YOUR_TELEGRAM_BOT_TOKEN",
+  "renderAppUrl": "https://YOUR-RENDER-APP-NAME.onrender.com",
+  "adminChannelId": "YOUR_ADMIN_NOTIFICATION_CHANNEL_ID"
+}

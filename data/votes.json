@@ -1,0 +1,30 @@
+{
+  "polls": [
+    {
+      "id": "87d3fff8-1896-485e-ac5d-ff44dbc10dc7",
+      "question": "test test testtest test testtest test testtest test testtest test testtest test testtest test testtest test testtest test testtest test test",
+      "options": [
+        {
+          "text": "test A \ntest B\ntest C",
+          "votes": 0,
+          "voters": []
+        },
+        {
+          "text": "test R",
+          "votes": 1,
+          "voters": [
+            7852212970
+          ]
+        },
+        {
+          "text": "tes g",
+          "votes": 0,
+          "voters": []
+        }
+      ],
+      "isActive": true,
+      "createdBy": 7852212970,
+      "createdAt": "2025-05-20T01:00:12.703Z"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "food_items": [
+    {
+      "id": "some-uuid-string-1",
+      "name": "Delicious Pizza",
+      "price": "12 USD",
+      "image_file_id": "optional_telegram_file_id_for_pizza_image",
+      "reviews": [
+        {
+          "reviewId": "another-uuid-string",
+          "userId": 123456789,
+          "userName": "John Doe",
+          "rating": 5,
+          "comment": "Absolutely fantastic!",
+          "timestamp": "2025-05-20T10:00:00.000Z"
+        }
+      ]
+    }
+  ]
+}

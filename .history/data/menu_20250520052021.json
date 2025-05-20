@@ -1,0 +1,24 @@
+{
+  "daily_menu": {
+    "monday": [],
+    "tuesday": [],
+    "wednesday": [],
+    "thursday": [],
+    "friday": [],
+    "saturday": [],
+    "sunday": []
+  },
+  "food_items": [],
+  "user_food_suggestions": [
+    {
+      "id": "e35b6a18-6481-4c78-9af7-b6bdbb431ce1",
+      "name": "Osh",
+      "price_suggestion": "25000",
+      "userId": 7852212970,
+      "userName": "To'rabek",
+      "status": "pending",
+      "timestamp": "2025-05-20T00:20:22.599Z"
+    }
+  ],
+  "reviews": []
+}

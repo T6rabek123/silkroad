@@ -1,0 +1,74 @@
+{
+  "faqs": [
+    {
+      "id": "cf9bf718-db7f-4104-8a96-6fbb2e79c835",
+      "question": "❓ What is the official name of the university?",
+      "answer": "✅ Silk Road International University of Tourism and Cultural Heritage (SRUITCH).",
+      "createdBy": 7852212970,
+      "createdAt": "2025-05-20T00:13:54.660Z"
+    },
+    {
+      "id": "c3fe3b1e-7b3d-4c74-9d91-49b76527b747",
+      "question": "❓ Where is the university located?",
+      "answer": "✅ The university is located in Samarkand, Uzbekistan.",
+      "createdBy": 7852212970,
+      "createdAt": "2025-05-20T00:14:12.641Z"
+    },
+    {
+      "id": "b334425d-4efb-4073-bfbd-0b4953bdaaab",
+      "question": "❓ What language are classes taught in?",
+      "answer": "✅ All programs are taught in English.",
+      "createdBy": 7852212970,
+      "createdAt": "2025-05-20T00:14:41.015Z"
+    },
+    {
+      "id": "0997fa29-8407-4a53-8bcb-a3f8dd5a6938",
+      "question": "❓ When was the university established?",
+      "answer": "✅ It was established in July 2018.",
+      "createdBy": 7852212970,
+      "createdAt": "2025-05-20T00:14:57.671Z"
+    },
+    {
+      "id": "da5eb6ad-5398-496a-99e8-72675aff1235",
+      "question": "❓ What degrees does the university offer?",
+      "answer": "✅ Bachelor’s, Master’s, and PhD programs in tourism, cultural heritage, and related fields.",
+      "createdBy": 7852212970,
+      "createdAt": "2025-05-20T00:15:21.418Z"
+    },
+    {
+      "id": "72b733f7-f3e9-419c-b9ff-6afc057cfb45",
+      "question": "❓ Is it an international university?",
+      "answer": "✅ Yes! It has international status and collaborates with universities worldwide, meanwhile it is state university NOT private",
+      "createdBy": 7852212970,
+      "createdAt": "2025-05-20T00:15:55.375Z"
+    },
+    {
+      "id": "0c5a14b8-6fb5-4873-8cb1-d2459759ad76",
+      "question": "❓ Can foreign students apply?",
+      "answer": "✅ Absolutely. Foreign students are welcome and supported through English-taught programs.",
+      "createdBy": 7852212970,
+      "createdAt": "2025-05-20T00:16:09.635Z"
+    },
+    {
+      "id": "c7288dad-5661-4643-8496-57e48ed2516e",
+      "question": "❓ What is the admission process like?",
+      "answer": "✅ You need to submit take DTM exam, and make sure, you have foreign language certificate (IELTS, CEFR, ...)",
+      "createdBy": 7852212970,
+      "createdAt": "2025-05-20T00:17:07.204Z"
+    },
+    {
+      "id": "3a430829-4852-4bc1-ac2a-617ccfe9c68d",
+      "question": "❓ What documents are required for admission?",
+      "answer": "✅ Passport, diploma/transcript, English language certificate (if available), and motivation letter.",
+      "createdBy": 7852212970,
+      "createdAt": "2025-05-20T00:17:25.712Z"
+    },
+    {
+      "id": "72682706-5950-4e47-ac40-edb822b5508c",
+      "question": "❓ Does the university have dormitories?",
+      "answer": "✅ Yes, there are student dorms and assistance for finding housing.",
+      "createdBy": 7852212970,
+      "createdAt": "2025-05-20T00:18:01.191Z"
+    }
+  ]
+}
