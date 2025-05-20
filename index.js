@@ -67,7 +67,7 @@ function isAdmin(userId) {
 }
 
 // --- Self-pinging mechanism for Render ---
-if (RENDER_APP_URL && RENDER_APP_URL !== 'https://silkroad-lrhx.onrender.com') {
+if (RENDER_APP_URL && RENDER_APP_URL !== 'https://silkroadhahauniversity.onrender.com') {
   setInterval(async () => {
     try {
       const response = await fetch(RENDER_APP_URL);
