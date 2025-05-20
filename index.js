@@ -26,8 +26,7 @@ if (!BOT_TOKEN) {
   process.exit(1);
 }
 
-const RENDER_APP_URL = config.renderAppUrl; // Used for self-ping
-
+const RENDER_APP_URL = process.env.RENDER_APP_URL || config.renderAppUrl;
 const {
   readData,
   writeData,
