@@ -140,3 +140,16 @@ bot.on('webhook_error', error => {
 });
 
 console.log('Event handlers and modules are being set up...');
+// --- Web server faqat Render uchun, port ochilishi uchun ---
+const express = require('express');
+const app = express();
+
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+  res.send('🚀 University Bot is running!');
+});
+
+app.listen(PORT, () => {
+  console.log(`🌐 Express server listening on port ${PORT}`);
+});
