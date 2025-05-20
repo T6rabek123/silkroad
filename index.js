@@ -66,29 +66,19 @@ function isAdmin(userId) {
 }
 
 // --- Self-pinging mechanism for Render ---
-if (RENDER_APP_URL && RENDER_APP_URL !== 'https://silkroadhahauniversity.onrender.com') {
+if (RENDER_APP_URL && RENDER_APP_URL.includes('onrender.com')) {
   setInterval(async () => {
     try {
-      const response = await fetch(RENDER_APP_URL);
-      if (response.ok) {
-        console.log(
-          `Self-ping to ${RENDER_APP_URL} successful at ${new Date().toISOString()}`
-        );
-      } else {
-        console.warn(
-          `Self-ping to ${RENDER_APP_URL} failed with status: ${
-            response.status
-          } at ${new Date().toISOString()}`
-        );
-      }
-    } catch (error) {
-      console.error(`Self-ping to ${RENDER_APP_URL} error:`, error.message);
+      const res = await fetch(RENDER_APP_URL);
+      console.log(`[Self-ping] ${new Date().toISOString()} → ${res.status}`);
+    } catch (err) {
+      console.error(`[Self-ping error] ${new Date().toISOString()} → ${err.message}`);
     }
-  }, 5 * 60 * 1000); // Every 5 minutes
-  console.log(`Self-ping mechanism activated for ${RENDER_APP_URL}`);
+  }, 5 * 60 * 1000); // ping every 5 min
+  console.log(`Self-ping activated → ${RENDER_APP_URL}`);
 } else {
   console.warn(
-    'RENDER_APP_URL is not configured or is default. Self-pinging is disabled. Bot may idle on free Render hosting.'
+    'RENDER_APP_URL is not configured correctly or missing. Self-ping disabled.'
   );
 }
 
