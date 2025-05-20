@@ -1,4 +1,3 @@
-// modules/newsHandler.js
 const { v4: uuidv4 } = require('uuid');
 
 module.exports = ({
@@ -10,11 +9,9 @@ module.exports = ({
   getUserState,
   clearUserState,
 }) => {
-  // --- Callback Query for Viewing News ---
   bot.on('callback_query', callbackQuery => {
     const msg = callbackQuery.message;
     const chatId = msg.chat.id;
-    // const userId = callbackQuery.from.id; // Not strictly needed for viewing
     const data = callbackQuery.data;
 
     if (data === 'view_news') {
@@ -25,16 +22,14 @@ module.exports = ({
         return;
       }
 
-      // Sort news by date, newest first
       const sortedNews = newsData.articles.sort(
         (a, b) => new Date(b.date) - new Date(a.date)
       );
 
       let responseText = '📰 **Latest News and Announcements:**\n\n';
-      const articlesToShow = sortedNews.slice(0, 5); // Show latest 5
+      const articlesToShow = sortedNews.slice(0, 5);
 
       if (articlesToShow.length === 0) {
-        // Should be caught by above check, but as a safeguard
         bot.sendMessage(chatId, '😕 There are currently no news articles.');
         bot.answerCallbackQuery(callbackQuery.id);
         return;
@@ -47,8 +42,8 @@ module.exports = ({
           month: 'long',
           day: 'numeric',
         })}_\n`;
-        responseText += `${article.content.substring(0, 150)}...\n`; // Show a snippet
-        responseText += `[Read more](tg://btn/${article.id})\n\n`; // Placeholder, real navigation below
+        responseText += `${article.content.substring(0, 150)}...\n`;
+        responseText += `[Read more](tg://btn/${article.id})\n\n`;
       });
 
       const inline_keyboard = articlesToShow.map(article => [
@@ -64,7 +59,7 @@ module.exports = ({
             text: 'Older News (View More)',
             callback_data: 'view_news_page_2',
           },
-        ]); // Basic pagination start
+        ]);
       }
 
       bot.sendMessage(chatId, responseText, {
@@ -87,7 +82,7 @@ module.exports = ({
           `${article.content}\n\n` +
           (isAdmin(callbackQuery.from.id)
             ? `🗑 To delete: /delete_news_${article.id}`
-            : ''); // Admin delete option
+            : '');
 
         bot.sendMessage(chatId, articleText, {
           parse_mode: 'Markdown',
@@ -107,10 +102,8 @@ module.exports = ({
       }
       bot.answerCallbackQuery(callbackQuery.id);
     }
-    // Add pagination logic for 'view_news_page_' if needed
   });
 
-  // --- Admin: Adding News (State Machine) ---
   bot.on('message', msg => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
@@ -119,7 +112,11 @@ module.exports = ({
     if (!isAdmin(userId)) return;
 
     const userState = getUserState(chatId);
-    if (!userState || !userState.action.startsWith('admin_awaiting_news_'))
+    if (
+      !userState ||
+      typeof userState.action !== 'string' ||
+      !userState.action.startsWith('admin_awaiting_news_')
+    )
       return;
 
     if (userState.action === 'admin_awaiting_news_title') {
@@ -160,7 +157,6 @@ module.exports = ({
     }
   });
 
-  // --- Admin: Deleting News (Command based for simplicity with ID) ---
   bot.onText(/\/delete_news_([a-zA-Z0-9-]+)/, (msg, match) => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;

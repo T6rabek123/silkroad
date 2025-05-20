@@ -10,7 +10,7 @@ module.exports = ({
   getUserState,
   clearUserState,
 }) => {
-  bot.on('callback_query', callbackQuery => {
+  bot.on('callback_query', async callbackQuery => {
     const msg = callbackQuery.message;
     const chatId = msg.chat.id;
     const userId = callbackQuery.from.id;
@@ -18,48 +18,131 @@ module.exports = ({
 
     // --- View Timetable ---
     if (data === 'view_timetable') {
-      const timetableData = readData('timetable.json', {
-        schedules: {},
-        generalInfo: '',
-      });
-
-      let responseText = '📅 **Class Timetable**\n\n';
+      const timetableData = readData('timetable.json'); // Default value handled by readData
+      let responseText = '📅 **Dars Jadvali**\n\n';
+      let hasTextSchedule = false;
 
       if (timetableData.generalInfo) {
-        responseText += `📢 **General Information:**\n${timetableData.generalInfo}\n\n`;
+        responseText += `📢 **Umumiy Ma'lumot:**\n${timetableData.generalInfo}\n\n`;
       }
 
-      const days = [
-        'monday',
-        'tuesday',
-        'wednesday',
-        'thursday',
-        'friday',
-        'saturday',
-      ]; // English days
-      let hasSchedule = false;
-      days.forEach(dayKey => {
-        const daySchedule = timetableData.schedules[dayKey.toLowerCase()];
-        if (daySchedule && daySchedule.length > 0) {
-          hasSchedule = true;
-          responseText += `🗓️ **${
-            dayKey.charAt(0).toUpperCase() + dayKey.slice(1)
-          }:**\n`;
-          daySchedule.forEach(item => {
-            responseText += `  🕒 ${item.time} - ${item.subject} (${
-              item.location || 'N/A'
-            })\n`;
-          });
-          responseText += '\n';
-        }
+      const daysOrder = [
+        'dushanba',
+        'seshanba',
+        'chorshanba',
+        'payshanba',
+        'juma',
+        'shanba',
+        'yakshanba',
+      ];
+      if (
+        timetableData.schedules &&
+        Object.keys(timetableData.schedules).length > 0
+      ) {
+        daysOrder.forEach(dayKey => {
+          const daySchedule = timetableData.schedules[dayKey];
+          if (daySchedule && daySchedule.length > 0) {
+            hasTextSchedule = true;
+            responseText += `🗓️ **${
+              dayKey.charAt(0).toUpperCase() + dayKey.slice(1)
+            }:**\n`;
+            daySchedule.forEach(item => {
+              responseText += `  🕒 ${item.time} - ${item.subject} (${
+                item.location || 'N/A'
+              })\n`;
+            });
+            responseText += '\n';
+          }
+        });
+      }
+
+      const inline_keyboard = [];
+      if (timetableData.uploadedFile && timetableData.uploadedFile.file_id) {
+        responseText += `\n📄 Shuningdek, yuklangan jadval fayli mavjud.\n`;
+        inline_keyboard.push([
+          {
+            text: `📥 Yuklangan Jadvalni Ochish (${
+              timetableData.uploadedFile.file_name || 'Fayl'
+            })`,
+            callback_data: 'get_timetable_file',
+          },
+        ]);
+      }
+
+      if (
+        !hasTextSchedule &&
+        !timetableData.generalInfo &&
+        !(timetableData.uploadedFile && timetableData.uploadedFile.file_id)
+      ) {
+        responseText =
+          '😕 Hozircha dars jadvali kiritilmagan (na matn, na fayl).';
+      } else if (
+        !hasTextSchedule &&
+        timetableData.uploadedFile &&
+        timetableData.uploadedFile.file_id &&
+        !timetableData.generalInfo
+      ) {
+        // If only file exists, make the message clearer
+        responseText = `📅 **Dars Jadvali**\n\n📄 Jadval fayl shaklida yuklangan. Uni ochish uchun quyidagi tugmani bosing.`;
+      }
+
+      bot.sendMessage(chatId, responseText, {
+        parse_mode: 'Markdown',
+        reply_markup:
+          inline_keyboard.length > 0 ? { inline_keyboard } : undefined,
       });
-
-      if (!hasSchedule && !timetableData.generalInfo) {
-        responseText = '😕 No timetable has been entered yet.';
-      }
-
-      bot.sendMessage(chatId, responseText, { parse_mode: 'Markdown' });
       bot.answerCallbackQuery(callbackQuery.id);
+    } else if (data === 'get_timetable_file') {
+      const timetableData = readData('timetable.json');
+      if (timetableData.uploadedFile && timetableData.uploadedFile.file_id) {
+        const { file_id, file_type, caption, file_name } =
+          timetableData.uploadedFile;
+        const sendOptions = caption ? { caption: caption } : {};
+        try {
+          switch (file_type) {
+            case 'document':
+              await bot.sendDocument(chatId, file_id, sendOptions);
+              break;
+            case 'photo':
+              await bot.sendPhoto(chatId, file_id, sendOptions);
+              break;
+            // Add other types if you plan to support them for timetable (e.g. PDF as document)
+            default: // Fallback to document if type is unknown or not specifically handled
+              console.warn(
+                `Unknown or unhandled file_type '${file_type}' for timetable. Sending as document.`
+              );
+              await bot.sendDocument(chatId, file_id, sendOptions);
+          }
+          bot.answerCallbackQuery(callbackQuery.id, {
+            text: 'Jadval fayli yuborilmoqda...',
+          });
+        } catch (err) {
+          console.error(
+            'Error sending timetable file:',
+            err.message,
+            'File ID:',
+            file_id,
+            'File Type:',
+            file_type
+          );
+          bot.sendMessage(
+            chatId,
+            `⚠️ Jadval faylini (${
+              file_name || "Noma'lum fayl"
+            }) yuborishda xatolik yuz berdi. Admin bilan bog'laning.`
+          );
+          bot.answerCallbackQuery(callbackQuery.id, {
+            text: 'Faylni yuborishda xatolik!',
+            show_alert: true,
+          });
+        }
+      } else {
+        bot.sendMessage(chatId, '⚠️ Yuklangan jadval fayli topilmadi.');
+        bot.answerCallbackQuery(callbackQuery.id, {
+          text: 'Fayl topilmadi!',
+          show_alert: true,
+        });
+      }
     }
 
     // --- GPA Calculator ---
@@ -186,21 +269,28 @@ module.exports = ({
 
       const gradeToPoint = grade => {
         grade = String(grade).toUpperCase();
-        if (grade === 'A' || (Number(grade) >= 90 && Number(grade) <= 100))
+        if (grade === 'A' || (Number(grade) >= 95 && Number(grade) <= 100))
           return 4.0;
-        if (grade === 'B+' || (Number(grade) >= 85 && Number(grade) <= 89))
-          return 3.5;
+        if (grade === 'A-' || (Number(grade) >= 90 && Number(grade) <= 94))
+          if (grade === 'B+' || (Number(grade) >= 85 && Number(grade) <= 89))
+            return 3.67;
         if (grade === 'B' || (Number(grade) >= 80 && Number(grade) <= 84))
           return 3.0;
-        if (grade === 'C+' || (Number(grade) >= 75 && Number(grade) <= 79))
-          return 2.5;
-        if (grade === 'C' || (Number(grade) >= 70 && Number(grade) <= 74))
+        if (grade === 'B-' || (Number(grade) >= 75 && Number(grade) <= 79))
+          return 2.67;
+        if (grade === 'C+' || (Number(grade) >= 70 && Number(grade) <= 74))
+          return 2.33;
+        if (grade === 'C' || (Number(grade) >= 65 && Number(grade) <= 69))
           return 2.0;
-        if (grade === 'D' || (Number(grade) >= 60 && Number(grade) <= 69))
-          return 1.0; // Assuming D is passing
-        if (grade === 'F' || (Number(grade) < 60 && Number(grade) >= 0))
+        if (grade === 'C-' || (Number(grade) >= 60 && Number(grade) <= 64))
+          return 1.67;
+        if (grade === 'D+' || (Number(grade) >= 55 && Number(grade) <= 59))
+          return 1.33;
+        if (grade === 'D' || (Number(grade) >= 50 && Number(grade) <= 54))
+          return 1.0;
+        if (grade === 'F' || (Number(grade) >= 0 && Number(grade) <= 49))
           return 0.0;
-        return null; // Invalid grade
+        return null;
       };
 
       lines.forEach(line => {
@@ -242,18 +332,15 @@ module.exports = ({
       }
 
       bot.sendMessage(chatId, resultsText, { parse_mode: 'Markdown' });
-      clearUserState(chatId); // Calculation done
+      clearUserState(chatId);
     } else {
-      // Accumulate input
       const currentRawInput = userState.data.rawInput || '';
       setUserState(chatId, 'gpa_awaiting_grades', {
         rawInput: currentRawInput + text + '\n',
       });
-      // Optional: Acknowledge input, e.g., bot.sendMessage(chatId, `"${text}" received. Continue or type 'calculate'.`);
     }
   });
 
-  // --- Admin: Uploading Timetable (from adminHandler state) ---
   bot.on('message', msg => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
@@ -272,15 +359,11 @@ module.exports = ({
       return;
     }
 
-    // Simple approach: store the whole text as generalInfo or parse it.
-    // For this version, let's store it as generalInfo.
-    // A more complex parser could populate the 'schedules' object.
     const timetableData = readData('timetable.json', {
       schedules: {},
       generalInfo: '',
     });
 
-    // Basic parsing attempt (example)
     const newSchedules = {};
     let currentDay = null;
     const lines = text.split('\n');
@@ -319,7 +402,6 @@ module.exports = ({
         '✅ Timetable (partially parsed) saved successfully!'
       );
     } else {
-      // If parsing fails or is not comprehensive, store as general info
       timetableData.generalInfo = text;
       bot.sendMessage(
         chatId,

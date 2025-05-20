@@ -1,10 +1,7 @@
-// index.js
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs');
 const path = require('path');
-const { v4: uuidv4 } = require('uuid'); // For generating unique IDs
-
-// --- Configuration and Data Loading ---
+const { v4: uuidv4 } = require('uuid');
 let config;
 try {
   config = JSON.parse(
@@ -38,7 +35,6 @@ const {
   clearUserState,
 } = require('./utils/stateManager');
 
-// Initialize data files (creates them with default structure if they don't exist)
 initializeDataFiles();
 
 let ADMIN_USER_IDS = [];
@@ -53,28 +49,27 @@ try {
   ADMIN_USER_IDS = [];
 }
 
-// --- Bot Initialization ---
 const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 console.log('🤖 University Bot has started successfully!');
 console.log(
   `Loaded ${ADMIN_USER_IDS.length} admin(s): ${ADMIN_USER_IDS.join(', ')}`
 );
 
-// --- Helper Functions ---
 function isAdmin(userId) {
   return ADMIN_USER_IDS.includes(userId);
 }
 
-// --- Self-pinging mechanism for Render ---
 if (RENDER_APP_URL && RENDER_APP_URL.includes('onrender.com')) {
   setInterval(async () => {
     try {
       const res = await fetch(RENDER_APP_URL);
       console.log(`[Self-ping] ${new Date().toISOString()} → ${res.status}`);
     } catch (err) {
-      console.error(`[Self-ping error] ${new Date().toISOString()} → ${err.message}`);
+      console.error(
+        `[Self-ping error] ${new Date().toISOString()} → ${err.message}`
+      );
     }
-  }, 5 * 60 * 1000); // ping every 5 min
+  }, 5 * 60 * 1000);
   console.log(`Self-ping activated → ${RENDER_APP_URL}`);
 } else {
   console.warn(
@@ -82,9 +77,6 @@ if (RENDER_APP_URL && RENDER_APP_URL.includes('onrender.com')) {
   );
 }
 
-// --- Importing Module Handlers ---
-// These files will contain the logic for specific features.
-// We pass `bot`, `isAdmin`, data helpers, and state helpers to them.
 const sharedDependencies = {
   bot,
   isAdmin,
@@ -104,51 +96,28 @@ require('./modules/faqHandler')(sharedDependencies);
 require('./modules/studentAssistant')(sharedDependencies);
 require('./modules/menuHandler')(sharedDependencies);
 require('./modules/votingHandler')(sharedDependencies);
-// Note: contactAdmin functionality is integrated into generalHandler and adminHandler (for replies)
 
-// --- Global Message Handler (for state-based inputs) ---
 bot.on('message', msg => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   const text = msg.text;
 
   if (!text || text.startsWith('/')) {
-    // Ignore commands if already handled, or non-text messages unless specifically handled by a state
     if (
       msg.document &&
       getUserState(chatId)?.action.includes('awaiting_file_')
     ) {
-      // File uploads will be handled by specific state handlers in modules
     } else {
       return;
     }
   }
 
   const userState = getUserState(chatId);
-  if (!userState) return; // No active state for this user
-
-  // Delegate to module handlers based on userState.action
-  // This is a simplified router; more complex scenarios might need more robust routing.
-  // Each module's message handler part should check userState.action.
-  // For example, in newsHandler.js:
-  // if (userState.action === 'awaiting_news_title' && isAdmin(userId)) { /* handle news title */ }
-
-  // This global handler is a fallback. Specific handlers in modules should ideally capture messages
-  // when a state is active. If a message arrives here and a state is active, it might mean
-  // a module didn't clear the state or didn't handle the input.
-  // console.log(`Global message handler processing for state: ${userState.action} by user ${userId}`);
-
-  // Example: if a module set a state like 'awaiting_generic_input'
-  // if (userState.action === 'awaiting_generic_input') {
-  //    bot.sendMessage(chatId, `You said: ${text}. Processing...`);
-  //    clearUserState(chatId);
-  // }
+  if (!userState) return;
 });
 
-// --- Global Error Handling ---
 bot.on('polling_error', error => {
   console.error(`Polling error: ${error.code} - ${error.message}`);
-  // ETELEGRAM: Forbidden: bot was blocked by the user - common, can be logged less verbosely
   if (
     error.message &&
     error.message.includes('ETELEGRAM') &&
@@ -171,4 +140,3 @@ bot.on('webhook_error', error => {
 });
 
 console.log('Event handlers and modules are being set up...');
-// Modules will attach their own listeners for commands and callback_queries.

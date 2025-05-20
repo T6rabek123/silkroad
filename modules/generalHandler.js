@@ -1,4 +1,3 @@
-// modules/generalHandler.js
 module.exports = ({
   bot,
   isAdmin,
@@ -8,7 +7,6 @@ module.exports = ({
   getUserState,
   clearUserState,
 }) => {
-  // --- /start command ---
   bot.onText(/\/start/, msg => {
     const chatId = msg.chat.id;
     const userName = msg.from.first_name;
@@ -42,10 +40,9 @@ module.exports = ({
       ...mainKeyboard,
       parse_mode: 'Markdown',
     });
-    clearUserState(chatId); // Clear any previous state
+    clearUserState(chatId);
   });
 
-  // --- /help command ---
   bot.onText(/\/help/, msg => {
     const chatId = msg.chat.id;
     const helpMessage =
@@ -67,7 +64,6 @@ module.exports = ({
     bot.sendMessage(chatId, helpMessage, { parse_mode: 'Markdown' });
   });
 
-  // --- /cancel command ---
   bot.onText(/\/cancel/, msg => {
     const chatId = msg.chat.id;
     clearUserState(chatId);
@@ -77,15 +73,13 @@ module.exports = ({
     );
   });
 
-  // --- Handling Main Menu Text Inputs and Feedback ---
   bot.on('message', msg => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
     const text = msg.text;
 
-    if (!text || text.startsWith('/')) return; // Ignore commands or non-text
+    if (!text || text.startsWith('/')) return;
 
-    // Feedback state handling
     const userState = getUserState(chatId);
     if (userState && userState.action === 'awaiting_feedback_message') {
       if (!text || text.length < 10) {
@@ -118,7 +112,6 @@ module.exports = ({
       );
       clearUserState(chatId);
 
-      // Notify admins
       const adminNotification = `📬 New Feedback Received!\n\n👤 User: ${newFeedback.userName} (ID: ${userId})\n📝 Message: ${newFeedback.message}\n\nGo to the Admin Panel to view.`;
       const { adminUserIds } = readData('admins.json', { adminUserIds: [] });
       adminUserIds.forEach(adminId => {
@@ -130,7 +123,6 @@ module.exports = ({
             )
           );
       });
-      // Or send to a specific admin channel if configured
       if (global.config && global.config.adminChannelId) {
         bot
           .sendMessage(global.config.adminChannelId, adminNotification)
@@ -140,10 +132,9 @@ module.exports = ({
             )
           );
       }
-      return; // Stop further processing
+      return;
     }
 
-    // Clear any pending states if user clicks a main menu button
     const mainMenuItems = [
       '📚 Student Assistant',
       '🤔 FAQ (Applicants)',

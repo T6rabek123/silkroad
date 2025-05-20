@@ -1,4 +1,3 @@
-// modules/menuHandler.js
 const { v4: uuidv4 } = require('uuid');
 
 module.exports = ({
@@ -10,7 +9,6 @@ module.exports = ({
   getUserState,
   clearUserState,
 }) => {
-  // Helper to initialize menu data if file is empty or new
   const getMenuData = () => {
     const data = readData('menu.json');
     if (!data.food_items) {
@@ -19,17 +17,12 @@ module.exports = ({
     return data;
   };
 
-  // --- Main Menu Setup (Example - Trigger this from your bot's /start or main command) ---
-  // This function is a placeholder for how you might trigger the main menu.
-  // You would call this from your main bot file.
   const sendMainMenu = (chatId, userId) => {
     const keyboard = [[{ text: '🍽️ Menu', callback_data: 'view_all_menu' }]];
     if (isAdmin(userId)) {
       keyboard.push([
         { text: '➕ Add New Food', callback_data: 'admin_add_food_start' },
       ]);
-      // You could add a "Delete Food" button here too if needed
-      // keyboard.push([{ text: '🗑️ Manage Food Items', callback_data: 'admin_manage_food_items_overview' }]);
     }
     keyboard.push([
       {
@@ -49,14 +42,12 @@ module.exports = ({
     );
   };
 
-  // --- Callback Query Handler ---
   bot.on('callback_query', async callbackQuery => {
     const msg = callbackQuery.message;
     const chatId = msg.chat.id;
     const userId = callbackQuery.from.id;
     const data = callbackQuery.data;
 
-    // --- User: View Full Menu ---
     if (data === 'view_all_menu') {
       const menuData = getMenuData();
       let responseText = '🍽️ **Our Full Menu**\n\n';
@@ -85,9 +76,6 @@ module.exports = ({
             },
           ]);
           if (item.image_file_id) {
-            // To send images, you'd ideally send them one by one, or provide a "view details" button.
-            // For simplicity in a single message, we'll just list them.
-            // responseText += `   (Image available)\n`;
           }
           responseText += '\n';
         });
@@ -103,10 +91,7 @@ module.exports = ({
         bot.sendMessage(chatId, responseText, { parse_mode: 'Markdown' });
       }
       bot.answerCallbackQuery(callbackQuery.id);
-    }
-
-    // --- User: Initiate Rating for a Food Item ---
-    else if (data.startsWith('rate_food_init_')) {
+    } else if (data.startsWith('rate_food_init_')) {
       const itemId = data.replace('rate_food_init_', '');
       const menuData = getMenuData();
       const foodItem = menuData.food_items.find(item => item.id === itemId);
@@ -127,35 +112,19 @@ module.exports = ({
         `How many stars (1-5) would you give to "${foodItem.name}"? Please enter a number.`
       );
       bot.answerCallbackQuery(callbackQuery.id);
-    }
-
-    // --- Admin: Start Adding a New Food Item ---
-    else if (data === 'admin_add_food_start' && isAdmin(userId)) {
+    } else if (data === 'admin_add_food_start' && isAdmin(userId)) {
       setUserState(chatId, 'admin_awaiting_new_food_name');
       bot.sendMessage(chatId, '📝 Enter the name for the new food item:');
       bot.answerCallbackQuery(callbackQuery.id);
-    }
-
-    // --- Admin: Go Back to Admin Panel (Example) or Main Menu ---
-    else if (data === 'admin_panel_back' && isAdmin(userId)) {
+    } else if (data === 'admin_panel_back' && isAdmin(userId)) {
       bot.answerCallbackQuery(callbackQuery.id);
-      // This should ideally trigger your main admin panel display logic
-      // For now, let's assume it goes back to the bot's main menu or a general admin message
-      sendMainMenu(chatId, userId); // Or your specific admin panel function
+
+      sendMainMenu(chatId, userId);
     } else if (data === 'go_to_main_bot_start') {
       bot.answerCallbackQuery(callbackQuery.id, { text: 'Returning...' });
-      // This should emit an event or call a function that shows your *absolute* main menu of the bot
-      // For example, if '/start' in your main bot.js shows the very first menu:
-      // bot.emit('text', { chat: { id: chatId }, from: { id: userId, first_name: callbackQuery.from.first_name }, text: '/start' });
-      // Or, if you have a function in your main bot file:
-      // mainBotInstance.showStartMenu(chatId);
-      // For now, just acknowledge.
-      bot.sendMessage(chatId, 'Please use the main bot commands to navigate.');
-    }
 
-    // --- (Optional) Admin: Manage Food Items Overview ---
-    // This part can be expanded if you want a separate screen for managing food
-    else if (data === 'admin_manage_food_items_overview' && isAdmin(userId)) {
+      bot.sendMessage(chatId, 'Please use the main bot commands to navigate.');
+    } else if (data === 'admin_manage_food_items_overview' && isAdmin(userId)) {
       const menuData = getMenuData();
       let responseText = '🍲 **Manage Food Items:**\n\n';
       const inline_keyboard = [
@@ -173,7 +142,6 @@ module.exports = ({
           responseText += `🔹 ${item.name} (${
             item.price
           }) - ID: ${item.id.substring(0, 8)}\n`;
-          // Add delete button for each item
           inline_keyboard.push([
             {
               text: `🗑 Delete: ${item.name.substring(0, 15)}`,
@@ -186,7 +154,7 @@ module.exports = ({
       }
       inline_keyboard.push([
         { text: '◀️ Back to Admin Menu', callback_data: 'admin_panel_back' },
-      ]); // Or main menu
+      ]);
 
       bot
         .editMessageText(responseText, {
@@ -197,16 +165,12 @@ module.exports = ({
         })
         .catch(() =>
           bot.sendMessage(chatId, responseText, {
-            // Fallback if edit fails
             reply_markup: { inline_keyboard },
             parse_mode: 'Markdown',
           })
         );
       bot.answerCallbackQuery(callbackQuery.id);
-    }
-
-    // --- Admin: Confirm Deletion of a Food Item ---
-    else if (
+    } else if (
       data.startsWith('admin_delete_food_item_confirm_') &&
       isAdmin(userId)
     ) {
@@ -239,16 +203,13 @@ module.exports = ({
                   text: '❌ No, Cancel',
                   callback_data: `admin_manage_food_items_overview`,
                 },
-              ], // Go back to manage screen
+              ],
             ],
           },
         }
       );
       bot.answerCallbackQuery(callbackQuery.id);
-    }
-
-    // --- Admin: Execute Deletion of a Food Item ---
-    else if (
+    } else if (
       data.startsWith('admin_delete_food_item_execute_') &&
       isAdmin(userId)
     ) {
@@ -267,7 +228,6 @@ module.exports = ({
         bot
           .deleteMessage(chatId, msg.message_id)
           .catch(e => console.error('Error deleting message:', e));
-        // Refresh the manage food items view by faking a callback
         process.nextTick(() => {
           bot.emit('callback_query', {
             ...callbackQuery,
@@ -283,7 +243,6 @@ module.exports = ({
     }
   });
 
-  // --- Message Handler for Inputs (User Rating & Admin Adding Food) ---
   bot.on('message', async msg => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
@@ -293,7 +252,6 @@ module.exports = ({
     const userState = getUserState(chatId);
     if (!userState) return;
 
-    // --- Admin: Adding New Food - Name Step ---
     if (
       isAdmin(userId) &&
       userState.action === 'admin_awaiting_new_food_name'
@@ -317,10 +275,7 @@ module.exports = ({
         chatId,
         `✅ Name set: "${text.trim()}". Now, please enter the price for this item (e.g., "10 USD" or "25000 SUM"):`
       );
-    }
-
-    // --- Admin: Adding New Food - Price Step ---
-    else if (
+    } else if (
       isAdmin(userId) &&
       userState.action === 'admin_awaiting_new_food_price'
     ) {
@@ -344,18 +299,14 @@ module.exports = ({
         chatId,
         `💰 Price set: "${text.trim()}". Now, please send an image for the food item, or type /skip if you don't want to add an image.`
       );
-    }
-
-    // --- Admin: Adding New Food - Image Step ---
-    else if (
+    } else if (
       isAdmin(userId) &&
       userState.action === 'admin_awaiting_new_food_image'
     ) {
       let imageFileId = null;
       if (photo && photo.length > 0) {
-        imageFileId = photo[photo.length - 1].file_id; // Get the largest available photo
+        imageFileId = photo[photo.length - 1].file_id;
       } else if (text && text.toLowerCase() === '/skip') {
-        // imageFileId remains null, which is fine
       } else if (text && text.toLowerCase() === '/cancel') {
         clearUserState(chatId);
         bot.sendMessage(chatId, 'Food adding process cancelled.');
@@ -375,7 +326,7 @@ module.exports = ({
         name: name,
         price: price,
         image_file_id: imageFileId,
-        reviews: [], // Initialize with empty reviews
+        reviews: [],
       };
       menuData.food_items.push(newFoodItem);
       writeData('menu.json', menuData);
@@ -387,10 +338,7 @@ module.exports = ({
         }.`
       );
       clearUserState(chatId);
-    }
-
-    // --- User: Food Rating - Rating Step ---
-    else if (userState.action === 'user_awaiting_food_rating') {
+    } else if (userState.action === 'user_awaiting_food_rating') {
       const rating = parseInt(text);
       if (isNaN(rating) || rating < 1 || rating > 5) {
         bot.sendMessage(
@@ -412,13 +360,9 @@ module.exports = ({
         chatId,
         `⭐ You gave ${rating} star(s) to "${userState.data.itemName}". Now, please add a short comment (optional), or type /skip to submit without a comment.`
       );
-    }
-
-    // --- User: Food Rating - Comment Step ---
-    else if (userState.action === 'user_awaiting_food_rating_comment') {
+    } else if (userState.action === 'user_awaiting_food_rating_comment') {
       let comment = '';
       if (text && text.toLowerCase() === '/skip') {
-        // comment remains empty
       } else if (text && text.toLowerCase() === '/cancel') {
         clearUserState(chatId);
         bot.sendMessage(chatId, 'Rating process cancelled.');
@@ -470,10 +414,7 @@ module.exports = ({
     }
   });
 
-  // Expose the function to send the main menu if needed by the main bot file
-  // This is just an example; adapt to your bot's structure.
   return {
-    sendMenuBotMainMenu: sendMainMenu, // You can call this from your main bot file
-    // You might not need to return anything if all is handled via bot events
+    sendMenuBotMainMenu: sendMainMenu,
   };
 };

@@ -1,6 +1,3 @@
-/*
-  All bot responses and menu texts have been translated from Uzbek to English.
-*/
 const { v4: uuidv4 } = require('uuid');
 
 module.exports = ({
@@ -12,7 +9,6 @@ module.exports = ({
   getUserState,
   clearUserState,
 }) => {
-  // --- Callback Query for Viewing FAQs ---
   bot.on('callback_query', callbackQuery => {
     const msg = callbackQuery.message;
     const chatId = msg.chat.id;
@@ -31,7 +27,7 @@ module.exports = ({
 
       let responseText =
         '🤔 **Frequently Asked Questions (FAQ) for Applicants:**\n\n';
-      // For simplicity, show all FAQs. For many FAQs, pagination would be needed.
+
       faqData.faqs.forEach((faq, index) => {
         responseText += `**${index + 1}. ${faq.question}**\n`;
         responseText += `💡 _Answer:_ ${faq.answer}\n\n`;
@@ -68,11 +64,9 @@ module.exports = ({
       });
       bot.answerCallbackQuery(callbackQuery.id);
     } else if (data === 'main_menu_from_faq') {
-      // Send main menu (could be a helper function if used often)
       const userName = callbackQuery.from.first_name;
       const welcomeMessage = `Main menu, ${userName}! 👋`;
       const mainKeyboardObj = {
-        // Reconstruct or import main keyboard
         keyboard: [
           [{ text: '📚 Student Assistant' }, { text: '🤔 FAQ (Applicants)' }],
           [{ text: '🍽 Canteen Menu' }, { text: '🗳 Voting / Feedback' }],
@@ -96,9 +90,7 @@ module.exports = ({
         parse_mode: 'Markdown',
       });
       bot.answerCallbackQuery(callbackQuery.id);
-    }
-    // Admin actions for FAQ from inline buttons
-    else if (data.startsWith('admin_delete_faq_confirm_')) {
+    } else if (data.startsWith('admin_delete_faq_confirm_')) {
       if (!isAdmin(callbackQuery.from.id)) {
         bot.answerCallbackQuery(callbackQuery.id, {
           text: 'No permission!',
@@ -147,8 +139,6 @@ module.exports = ({
           chat_id: chatId,
           message_id: msg.message_id,
         });
-        // Optionally, resend the FAQ list:
-        // setTimeout(() => this.handleCallbackQuery({ message: msg, from: {id: callbackQuery.from.id}, data: 'view_faqs' }), 200);
       } else {
         bot.editMessageText('⚠️ Error deleting FAQ.', {
           chat_id: chatId,
@@ -157,10 +147,8 @@ module.exports = ({
       }
       bot.answerCallbackQuery(callbackQuery.id);
     }
-    // Edit FAQ handlers would be similar, setting states for question then answer
   });
 
-  // --- Admin: Adding/Editing FAQ (State Machine) ---
   bot.on('message', msg => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
@@ -169,7 +157,11 @@ module.exports = ({
     if (!isAdmin(userId)) return;
 
     const userState = getUserState(chatId);
-    if (!userState || !userState.action.startsWith('admin_awaiting_faq_'))
+    if (
+      !userState ||
+      typeof userState.action !== 'string' ||
+      !userState.action.startsWith('admin_awaiting_faq_')
+    )
       return;
 
     if (userState.action === 'admin_awaiting_faq_question') {

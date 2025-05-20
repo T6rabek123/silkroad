@@ -10,7 +10,6 @@ module.exports = ({
   getUserState,
   clearUserState,
 }) => {
-  // --- User: View Polls & Vote ---
   bot.on('callback_query', callbackQuery => {
     const msg = callbackQuery.message;
     const chatId = msg.chat.id;
@@ -27,8 +26,6 @@ module.exports = ({
         return;
       }
 
-      // For simplicity, show one poll at a time or list them
-      // Let's list them with an option to vote
       let responseText = '📋 **Available Active Polls:**\n\n';
       const inline_keyboard = [];
 
@@ -76,7 +73,6 @@ module.exports = ({
         return;
       }
 
-      // Check if user already voted
       const alreadyVoted = poll.options.some(
         opt => opt.voters && opt.voters.includes(userId)
       );
@@ -85,7 +81,7 @@ module.exports = ({
           text: 'You have already voted in this poll!',
           show_alert: true,
         });
-        // Optionally show results directly
+
         displayPollResults(chatId, pollId, userId);
         return;
       }
@@ -112,7 +108,7 @@ module.exports = ({
         )
         .catch(e =>
           console.error('Error editing message for poll options:', e.message)
-        ); // Catch if message not modified
+        );
       bot.answerCallbackQuery(callbackQuery.id);
     } else if (data.startsWith('poll_') && data.includes('_option_')) {
       const parts = data.split('_');
@@ -141,7 +137,6 @@ module.exports = ({
         return;
       }
 
-      // Check if user already voted (again, as a safeguard)
       const alreadyVoted = poll.options.some(
         opt => opt.voters && opt.voters.includes(userId)
       );
@@ -150,7 +145,7 @@ module.exports = ({
           text: 'You have already voted in this poll!',
           show_alert: true,
         });
-        displayPollResults(chatId, pollId, userId, msg.message_id); // Show results
+        displayPollResults(chatId, pollId, userId, msg.message_id);
         return;
       }
 
@@ -165,17 +160,12 @@ module.exports = ({
       bot.answerCallbackQuery(callbackQuery.id, {
         text: '✅ Your vote has been recorded!',
       });
-      displayPollResults(chatId, pollId, userId, msg.message_id); // Show updated results
-    }
-
-    // --- Admin: View Poll Results ---
-    else if (data.startsWith('admin_view_poll_results_') && isAdmin(userId)) {
+      displayPollResults(chatId, pollId, userId, msg.message_id);
+    } else if (data.startsWith('admin_view_poll_results_') && isAdmin(userId)) {
       const pollId = data.replace('admin_view_poll_results_', '');
-      displayPollResults(chatId, pollId, userId, msg.message_id, true); // isPrivilegedView = true
+      displayPollResults(chatId, pollId, userId, msg.message_id, true);
       bot.answerCallbackQuery(callbackQuery.id);
-    }
-    // --- Admin: Deactivate Poll ---
-    else if (data.startsWith('admin_deactivate_poll_') && isAdmin(userId)) {
+    } else if (data.startsWith('admin_deactivate_poll_') && isAdmin(userId)) {
       const pollId = data.replace('admin_deactivate_poll_', '');
       const voteData = readData('votes.json', { polls: [] });
       const poll = voteData.polls.find(p => p.id === pollId);
@@ -253,7 +243,6 @@ module.exports = ({
     resultsText += `\nTotal votes: ${totalVotes}\n`;
 
     if (is_privileged_view && isAdmin(user_id)) {
-      // Add more details for admin, e.g., list of voters if small, or export option
       resultsText += `\n(Admin view)\n`;
     }
 
@@ -264,7 +253,6 @@ module.exports = ({
       poll.isActive &&
       !poll.options.some(opt => opt.voters && opt.voters.includes(user_id))
     ) {
-      // If user hasn't voted yet and poll is active, give option to vote again
       keyboard.unshift([
         {
           text: '🗳 Vote Again / Change Vote',
@@ -282,7 +270,6 @@ module.exports = ({
           parse_mode: 'Markdown',
         })
         .catch(e => {
-          // If message not modified or other error, send as new
           console.warn(
             'Could not edit message for poll results, sending new one. Error:',
             e.message
@@ -300,7 +287,6 @@ module.exports = ({
     }
   }
 
-  // --- Admin: Create Poll (State Machine) ---
   bot.on('message', msg => {
     const chatId = msg.chat.id;
     const userId = msg.from.id;
@@ -309,7 +295,11 @@ module.exports = ({
     if (!isAdmin(userId)) return;
 
     const userState = getUserState(chatId);
-    if (!userState || !userState.action.startsWith('admin_awaiting_poll_'))
+    if (
+      !userState ||
+      typeof userState.action !== 'string' ||
+      !userState.action.startsWith('admin_awaiting_poll_')
+    )
       return;
 
     if (userState.action === 'admin_awaiting_poll_question') {

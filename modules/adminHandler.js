@@ -42,7 +42,7 @@ module.exports = ({
         [
           {
             text: '📅 Upload/Update Timetable',
-            callback_data: 'admin_upload_timetable',
+            callback_data: 'admin_update_timetable_options',
           },
           {
             text: '📎 Upload Useful File',
@@ -171,22 +171,46 @@ module.exports = ({
     }
 
     // --- Timetable Management ---
-    else if (data === 'admin_upload_timetable') {
-      if (!isAdmin(userId)) {
-        bot.answerCallbackQuery(callbackQuery.id, {
-          text: 'No permission!',
-          show_alert: true,
-        });
-        return;
-      }
-      setUserState(chatId, 'admin_awaiting_timetable_text');
+    else if (data === 'admin_update_timetable_options') {
+      bot.sendMessage(chatId, '📅 Dars jadvalini qanday yangilamoqchisiz?', {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: '📝 Matn Orqali Kiritish',
+                callback_data: 'admin_upload_timetable_text',
+              },
+            ],
+            [
+              {
+                text: '📄 Fayl Yuklash (Excel, PDF, Rasm)',
+                callback_data: 'admin_upload_timetable_file',
+              },
+            ],
+            [
+              {
+                text: '◀️ Admin Panelga Qaytish',
+                callback_data: 'admin_panel_main',
+              },
+            ],
+          ],
+        },
+      });
+    } else if (data === 'admin_upload_timetable_text') {
+      setUserState(chatId, 'admin_awaiting_timetable_text_input');
       bot.sendMessage(
         chatId,
-        '📅 Send the timetable in text format or upload as a file.\nSample format:\nDAY (Monday):\n1. 08:30 - Mathematics (Room 101)\n2. 10:00 - Physics (Room 202)\n\nOr enter general information.'
+        "📅 Dars jadvalini matn formatida yuboring.\nNamunaviy format:\nKUN (Dushanba):\n1. 08:30 - Matematika (Xona 101)\n2. 10:00 - Fizika (Xona 202)\n\nYoki umumiy ma'lumotni kiriting."
+      );
+      bot.answerCallbackQuery(callbackQuery.id);
+    } else if (data === 'admin_upload_timetable_file') {
+      setUserState(chatId, 'admin_awaiting_timetable_file_upload');
+      bot.sendMessage(
+        chatId,
+        "📄 Dars jadvali faylini (Excel, PDF, DOCX, Rasm) yuklang. Keyin fayl uchun qisqacha sarlavha (caption) so'rayman."
       );
       bot.answerCallbackQuery(callbackQuery.id);
     }
-
     // --- Useful Files Management ---
     else if (data === 'admin_upload_file') {
       if (!isAdmin(userId)) {
